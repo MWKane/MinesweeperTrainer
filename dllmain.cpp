@@ -11,10 +11,6 @@ DWORD WINAPI HackThread(HMODULE hModule)
     FILE* f;
     freopen_s(&f, "CONOUT$", "w", stdout);
 
-    uintptr_t moduleBase = (uintptr_t)GetModuleHandle((LPCWSTR)GAME_NAME);
-    // Calling it with NULL also gives you the address of the .exe module
-    moduleBase = (uintptr_t)GetModuleHandle(NULL);
-
     // Toggles
     bool isClockFrozen = false;
 
@@ -30,6 +26,8 @@ DWORD WINAPI HackThread(HMODULE hModule)
             system("cls");
             std::cout << "[F1] Toggle Clock" << std::endl;
             std::cout << "[F2] Reset Clock" << std::endl;
+            std::cout << "[F3] Flag Mines" << std::endl;
+            std::cout << "[F4] Win Game" << std::endl;
             std::cout << "[End] Exit" << std::endl << std::endl;
 
             game::DisplayGrid(grid);
@@ -62,6 +60,18 @@ DWORD WINAPI HackThread(HMODULE hModule)
         if (GetAsyncKeyState(VK_F2) & 1)
         {
             game::SetClock(0);
+        }
+
+        // Flag mines
+        if (GetAsyncKeyState(VK_F3) & 1)
+        {
+            game::RevealMines();
+        }
+
+        // Win Game 
+        if (GetAsyncKeyState(VK_F4) & 1)
+        {
+
         }
 
         Sleep(5);

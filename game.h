@@ -40,4 +40,9 @@ namespace game
 	/// <param name="seconds"></param>
 	/// <returns>The clock's old value.</returns>
 	BYTE SetClock(BYTE seconds);
+
+	/// <summary>
+	/// Flag all mines.
+	/// </summary>
+	void RevealMines();
 }

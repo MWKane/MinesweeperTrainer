@@ -2,12 +2,11 @@
 #include "game.h"
 
 // Colour codes
-#define DEFAULT_COLOR 0x0F
-#define MINE_COLOR 0x04
-#define BLANK_COLOR 0x08
-#define FLAG_BLANK_COLOR 0x06
-#define FLAG_MINE_COLOR 0x0A
-#define MINE_REVEALED_COLOR 0x06
+#define WHITE 0x0F
+#define RED 0x04
+#define GREY 0x08
+#define ORANGE 0x06
+#define GREEN 0x0A
 
 // Cell values
 #define BOUNDRY 0x10
@@ -27,6 +26,11 @@
 #define MINEFIELD BASE_ADDR + 0x5340
 #define CLOCK BASE_ADDR + 0x579C
 #define INC_CLOCK BASE_ADDR + 0x2FF5
+#define FUNC_REVEALMINES BASE_ADDR + 0x2F80
+
+// Hijacked functions
+typedef void(__stdcall* _revealMines)(uint8_t lsb);
+_revealMines revealMines;
 
 /// <summary>
 /// Gets the CHAR number representation of the value of cell.
@@ -76,7 +80,7 @@ void game::DisplayGrid(std::vector<std::vector<BYTE>>& grid)
 		{
 			BYTE cell = grid[row][col];
 			CHAR val = '\0';
-			int color = DEFAULT_COLOR;
+			int color = WHITE;
 
 			switch (cell)
 			{
@@ -86,22 +90,22 @@ void game::DisplayGrid(std::vector<std::vector<BYTE>>& grid)
 
 			case MINE:
 				val = '*';
-				color = MINE_COLOR;
+				color = RED;
 				break;
 
 			case BLANK:
 				val = ' ';
-				color = BLANK_COLOR;
+				color = GREY;
 				break;
 
 			case FLAG_BLANK:
 				val = '!';
-				color = FLAG_BLANK_COLOR;
+				color = ORANGE;
 				break;
 
 			case FLAG_MINE:
 				val = '!';
-				color = FLAG_MINE_COLOR;
+				color = GREEN;
 				break;
 
 			case QUESTION:
@@ -114,7 +118,7 @@ void game::DisplayGrid(std::vector<std::vector<BYTE>>& grid)
 
 			case MINE_REVEALED:
 				val = '*';
-				color = MINE_REVEALED_COLOR;
+				color = ORANGE;
 				break;
 
 			default:
@@ -129,7 +133,7 @@ void game::DisplayGrid(std::vector<std::vector<BYTE>>& grid)
 		std::cout << std::endl;
 	}
 
-	SetConsoleTextAttribute(hConsole, DEFAULT_COLOR);
+	SetConsoleTextAttribute(hConsole, WHITE);
 }
 
 void game::FreezeClock()
@@ -149,6 +153,15 @@ BYTE game::SetClock(BYTE seconds)
 
 	*clock = seconds;
 	return old;
+}
+
+void game::RevealMines()
+{
+	// LSB of 0xA = Revealed Mine
+	// LSB of 0xE = Flagged Mine
+	revealMines = (_revealMines)(FUNC_REVEALMINES);
+	revealMines(0xE);
+	//revealMines(0xA);
 }
 
 CHAR CellToNumber(BYTE cell)
