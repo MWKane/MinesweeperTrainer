@@ -2,7 +2,6 @@
 #include "pch.h"
 #include <iostream>
 #include <time.h>
-#include "mem.h"
 #include "game.h"
 
 DWORD WINAPI HackThread(HMODULE hModule)
@@ -16,18 +15,23 @@ DWORD WINAPI HackThread(HMODULE hModule)
     // Calling it with NULL also gives you the address of the .exe module
     moduleBase = (uintptr_t)GetModuleHandle(NULL);
 
-    time_t lastUpdated = time(0);
+    // Toggles
+    bool isClockFrozen = false;
 
+    time_t lastUpdated = time(0);
     while (true)
     {
         // Write menu
         if (difftime(time(0), lastUpdated) >= 1)
         {
+            // Do any intense work before we cls the screen
+            std::vector<std::vector<BYTE>> grid = game::GetGrid();
+
             system("cls");
-            std::cout << "[F1] Test" << std::endl;
+            std::cout << "[F1] Toggle Clock" << std::endl;
+            std::cout << "[F2] Reset Clock" << std::endl;
             std::cout << "[End] Exit" << std::endl << std::endl;
 
-            std::vector<std::vector<BYTE>> grid = game::GetGrid();
             game::DisplayGrid(grid);
 
             time(&lastUpdated);
@@ -39,10 +43,25 @@ DWORD WINAPI HackThread(HMODULE hModule)
             break;
         }
 
-        // Test
+        // Freeze Clock
         if (GetAsyncKeyState(VK_F1) & 1)
         {
-            game::SaySomething("Hello, World!");
+            if (isClockFrozen)
+            {
+                game::UnfreezeClock();
+            }
+            else
+            {
+                game::FreezeClock();
+            }
+
+            isClockFrozen = !isClockFrozen;
+        }
+
+        // Reset Clock
+        if (GetAsyncKeyState(VK_F2) & 1)
+        {
+            game::SetClock(0);
         }
 
         Sleep(5);
