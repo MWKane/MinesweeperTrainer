@@ -6,6 +6,8 @@
 // Include game specific functions here
 namespace game
 {
+	void SaySomething(const char* msg);
+
 	/// <summary>
 	/// Gets a vector matrix of bytes representing the minefield.
 	/// </summary>

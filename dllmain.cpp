@@ -1,6 +1,7 @@
 // dllmain.cpp : Defines the entry point for the DLL application.
 #include "pch.h"
 #include <iostream>
+#include <time.h>
 #include "mem.h"
 #include "game.h"
 
@@ -15,22 +16,21 @@ DWORD WINAPI HackThread(HMODULE hModule)
     // Calling it with NULL also gives you the address of the .exe module
     moduleBase = (uintptr_t)GetModuleHandle(NULL);
 
-    // Toggles
-    bool displayGrid = false;
+    time_t lastUpdated = time(0);
 
-    bool updateMenu = true;
     while (true)
     {
-        if (updateMenu)
+        // Write menu
+        if (difftime(time(0), lastUpdated) >= 1)
         {
             system("cls");
-            std::cout << "[F1] Option 1" << std::endl;
-            std::cout << "[F2] Option 2" << std::endl;
-            std::cout << "[F3] Option 3" << std::endl;
-
+            std::cout << "[F1] Test" << std::endl;
             std::cout << "[End] Exit" << std::endl << std::endl;
 
-            updateMenu = false;
+            std::vector<std::vector<BYTE>> grid = game::GetGrid();
+            game::DisplayGrid(grid);
+
+            time(&lastUpdated);
         }
 
         // Quit
@@ -39,31 +39,12 @@ DWORD WINAPI HackThread(HMODULE hModule)
             break;
         }
 
-        // Option 1
-        if (GetAsyncKeyState(VK_F1) & 1 || displayGrid)
+        // Test
+        if (GetAsyncKeyState(VK_F1) & 1)
         {
-            displayGrid = !displayGrid;
-            updateMenu = !displayGrid;
-
-            std::vector<std::vector<BYTE>> grid = game::GetGrid();
-            game::DisplayGrid(grid);
+            game::SaySomething("Hello, World!");
         }
 
-        // Option 2
-        if (GetAsyncKeyState(VK_F2) & 1)
-        {
-            // game::doSomething()
-            updateMenu = true;
-        }
-
-        // Option 3
-        if (GetAsyncKeyState(VK_F3) & 1)
-        {
-            // game::doSomething()
-            updateMenu = true;
-        }
-
-        // ...
         Sleep(5);
     }
 

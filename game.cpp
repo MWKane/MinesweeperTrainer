@@ -1,36 +1,56 @@
 #include "pch.h"
 #include "game.h"
 
-// Values
+// Colour codes
+#define DEFAULT_COLOR 0x0F
+#define MINE_COLOR 0x04
+#define BLANK_COLOR 0x08
+#define FLAG_BLANK_COLOR 0x06
+#define FLAG_MINE_COLOR 0x0A
+
+// Cell values
 #define BOUNDRY 0x10
 #define EMPTY 0x0F
 #define MINE 0x8F
 #define BLANK 0X40
-#define FLAG 0x8E
+#define MINE_FLAG 0x8E
+#define BLANK_FLAG 0x0E
 #define QUESTION 0x0D
 #define EXPLOSION 0xCC
 
-// Addresses
-#define ROWS 0x01005334
-#define COLS 0x01005338
+// Memory addresses
+#define WIDTH 0x01005334
+#define HEIGHT 0x01005338
 #define MINEFIELD 0x01005340
+
+/// <summary>
+/// Gets the CHAR number representation of the value of cell.
+/// ie: Gets number of surrounding mines as a CHAR.
+/// </summary>
+/// <param name="cell"></param>
+/// <returns></returns>
+CHAR CellToNumber(BYTE cell);
+
+void game::SaySomething(const char* msg)
+{
+	std::cout << msg << std::endl;
+}
 
 std::vector<std::vector<BYTE>> game::GetGrid()
 {
-	std::vector<std::vector<BYTE>> grid(ROWS, std::vector<BYTE>(COLS));
-
 	BYTE* minefield = (BYTE*)MINEFIELD;
-	BYTE* width = (BYTE*)ROWS;
-	BYTE* height = (BYTE*)COLS;
+	BYTE* width = (BYTE*)WIDTH;
+	BYTE* height = (BYTE*)HEIGHT;
 
-	uintptr_t rows = (uintptr_t)width;
-	uintptr_t cols = (uintptr_t)height;
+	uintptr_t rows = (uintptr_t)(*height);
+	uintptr_t cols = (uintptr_t)(*width);
 
-	for (unsigned int row = 1; row < rows; row++)
+	std::vector<std::vector<BYTE>> grid(rows + 1, std::vector<BYTE>(cols + 1));
+	for (unsigned int row = 1; row <= rows; row++)
 	{
-		for (unsigned int col = 1; col < cols; col++)
+		for (unsigned int col = 1; col <= cols; col++)
 		{
-			BYTE* cell = minefield + row + (col * 0x20);
+			BYTE* cell = minefield + col + (row * 0x20);
 			grid[row][col] = *cell;
 		}
 	}
@@ -43,12 +63,15 @@ void game::DisplayGrid(std::vector<std::vector<BYTE>>& grid)
 	size_t rows = grid.size();
 	size_t cols = grid[0].size();
 
-	for (size_t i = 0; i < rows; i++)
+	HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+
+	for (size_t row = 1; row < rows; row++)
 	{
-		for (size_t j = 0; j < cols; j++)
+		for (size_t col = 1; col < cols; col++)
 		{
-			BYTE cell = grid[i][j];
+			BYTE cell = grid[row][col];
 			CHAR val = '\0';
+			int color = DEFAULT_COLOR;
 
 			switch (cell)
 			{
@@ -58,18 +81,26 @@ void game::DisplayGrid(std::vector<std::vector<BYTE>>& grid)
 
 			case MINE:
 				val = '*';
+				color = MINE_COLOR;
 				break;
 
 			case BLANK:
 				val = ' ';
+				color = BLANK_COLOR;
 				break;
 
-			case FLAG:
+			case BLANK_FLAG:
 				val = '!';
+				color = FLAG_BLANK_COLOR;
+				break;
+
+			case MINE_FLAG:
+				val = '!';
+				color = FLAG_MINE_COLOR;
 				break;
 
 			case QUESTION:
-				val = '?';
+				val = '\?';
 				break;
 
 			case EXPLOSION:
@@ -77,15 +108,22 @@ void game::DisplayGrid(std::vector<std::vector<BYTE>>& grid)
 				break;
 
 			default:
-				val = char(cell);
+				val = CellToNumber(cell);
 				break;
 			}
 
-			std::cout << '[';
-			std::cout << val;
-			std::cout << ']';
+			SetConsoleTextAttribute(hConsole, color);
+			std::cout << '[' << val << ']';
 		}
 
 		std::cout << std::endl;
 	}
+
+	SetConsoleTextAttribute(hConsole, DEFAULT_COLOR);
+}
+
+CHAR CellToNumber(BYTE cell)
+{
+	int i = (int)cell - 0x10;
+	return char(i);
 }
