@@ -45,4 +45,9 @@ namespace game
 	/// Flag all mines.
 	/// </summary>
 	void RevealMines();
+
+	/// <summary>
+	/// Wins the game immediately.
+	/// </summary>
+	void WinGame();
 }

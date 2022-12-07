@@ -71,7 +71,7 @@ DWORD WINAPI HackThread(HMODULE hModule)
         // Win Game 
         if (GetAsyncKeyState(VK_F4) & 1)
         {
-
+            game::WinGame();
         }
 
         Sleep(5);

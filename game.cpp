@@ -12,12 +12,13 @@
 #define BOUNDRY 0x10
 #define EMPTY 0x0F
 #define BLANK 0X40
+#define BLANK_FLAG 0x0E
+#define BLANK_QUESTION 0x0D
 #define MINE 0x8F
-#define MINE_EXPLODED 0xCC
 #define MINE_REVEALED 0x8A
-#define FLAG_MINE 0x8E
-#define FLAG_BLANK 0x0E
-#define QUESTION 0x0D
+#define MINE_EXPLODED 0xCC
+#define MINE_FLAG 0x8E
+#define MINE_QUESTION 0x8D
 
 // Memory addresses
 #define BASE_ADDR 0x01000000
@@ -27,10 +28,13 @@
 #define CLOCK BASE_ADDR + 0x579C
 #define INC_CLOCK BASE_ADDR + 0x2FF5
 #define FUNC_REVEALMINES BASE_ADDR + 0x2F80
+#define FUNC_WINGAME BASE_ADDR + 0x347C
 
 // Hijacked functions
 typedef void(__stdcall* _revealMines)(uint8_t lsb);
 _revealMines revealMines;
+typedef void(__stdcall* _winGame)(uint32_t arg_1);
+_winGame winGame;
 
 /// <summary>
 /// Gets the CHAR number representation of the value of cell.
@@ -88,37 +92,42 @@ void game::DisplayGrid(std::vector<std::vector<BYTE>>& grid)
 				val = ' ';
 				break;
 
-			case MINE:
-				val = '*';
-				color = RED;
-				break;
-
 			case BLANK:
 				val = ' ';
 				color = GREY;
 				break;
 
-			case FLAG_BLANK:
+			case BLANK_FLAG:
 				val = '!';
 				color = ORANGE;
 				break;
 
-			case FLAG_MINE:
-				val = '!';
-				color = GREEN;
+			case BLANK_QUESTION:
+				val = '?';
 				break;
 
-			case QUESTION:
-				val = '\?';
-				break;
-
-			case MINE_EXPLODED:
-				val = '#';
+			case MINE:
+				val = '*';
+				color = RED;
 				break;
 
 			case MINE_REVEALED:
 				val = '*';
 				color = ORANGE;
+				break;
+
+			case MINE_EXPLODED:
+				val = '#';
+				color = RED;
+				break;
+
+			case MINE_FLAG:
+				val = '!';
+				color = GREEN;
+				break;
+
+			case MINE_QUESTION:
+				val = '?';
 				break;
 
 			default:
@@ -162,6 +171,12 @@ void game::RevealMines()
 	revealMines = (_revealMines)(FUNC_REVEALMINES);
 	revealMines(0xE);
 	//revealMines(0xA);
+}
+
+void game::WinGame()
+{
+	winGame = (_winGame)(FUNC_WINGAME);
+	winGame(0x1);
 }
 
 CHAR CellToNumber(BYTE cell)
